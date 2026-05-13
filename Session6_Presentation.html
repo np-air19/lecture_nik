@@ -1,0 +1,1122 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Session 6 — AI-Powered Web Development · Nik</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&family=Inter:wght@300;400;500;600;700&family=Dancing+Script:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --coral:#E8758A;
+    --coral-soft:#FFD2DC;
+    --coral-mist:#FFEEF2;
+    --cream:#FBF8F3;
+    --cream-deep:#F5F0E8;
+    --plum:#1A0533;
+    --plum-deep:#0B0118;
+    --violet:#835AFF;
+    --violet-soft:#B49AFF;
+    --lavender:#CFC3E0;
+    --mist:#E8E0F0;
+    --muted:#9C8AB8;
+    --gold:#FFB81C;
+    --royal:#2563EB;
+    --line:rgba(26,5,51,.18);
+    --line-soft:rgba(26,5,51,.10);
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%;background:var(--plum-deep);color:var(--plum);font-family:"Inter",ui-sans-serif,system-ui,sans-serif;-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility;font-weight:400;letter-spacing:-0.005em}
+  body{overflow:hidden}
+  .deck{position:relative;width:100vw;height:100vh;overflow:hidden}
+  .slide{
+    position:absolute;inset:0;
+    background:var(--cream);
+    padding:6vh 7vw 11vh;
+    display:flex;flex-direction:column;justify-content:center;
+    opacity:0;visibility:hidden;
+    transition:opacity .35s ease;
+    overflow:hidden;
+  }
+  .slide.active{opacity:1;visibility:visible;z-index:2}
+  /* watercolor wash accents */
+  .slide::before{
+    content:"";position:absolute;right:-12vw;top:-14vh;width:42vw;height:42vw;
+    background:radial-gradient(closest-side, rgba(232,117,138,.35), rgba(232,117,138,0) 70%);
+    filter:blur(8px);pointer-events:none;
+  }
+  .slide::after{
+    content:"";position:absolute;left:-10vw;bottom:-18vh;width:46vw;height:46vw;
+    background:radial-gradient(closest-side, rgba(131,90,255,.28), rgba(131,90,255,0) 70%);
+    filter:blur(10px);pointer-events:none;
+  }
+
+  /* chrome */
+  .chrome{
+    position:fixed;left:0;right:0;display:flex;justify-content:space-between;
+    padding:2.6vh 7vw;font-family:"Inter","Helvetica Neue",Arial,sans-serif;
+    font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--plum);
+    z-index:10;pointer-events:none;
+  }
+  .chrome.top{top:0}
+  .chrome.bot{bottom:0}
+  .chrome .dot{opacity:.7}
+
+  /* layout primitives */
+  .eyebrow{
+    font-family:"Inter","Helvetica Neue",Arial,sans-serif;
+    font-size:13px;letter-spacing:.22em;text-transform:uppercase;
+    color:var(--coral);font-weight:500;
+    display:flex;align-items:center;gap:14px;
+  }
+  .eyebrow .rn{color:var(--plum);opacity:.55}
+  .eyebrow .bar{flex:0 0 56px;height:1px;background:var(--plum);opacity:.35}
+
+  h1.title{
+    font-family:"Poppins","Helvetica Neue",Helvetica,Arial,sans-serif;
+    font-weight:600;font-style:normal;
+    font-size:clamp(54px,7.8vw,128px);
+    line-height:1.02;letter-spacing:-.035em;
+    color:var(--plum);
+    margin-top:2vh;
+  }
+  h1.title em{font-style:normal;color:var(--coral);font-weight:600}
+  h2.h{
+    font-family:"Poppins","Helvetica Neue",Helvetica,Arial,sans-serif;
+    font-weight:600;
+    font-size:clamp(38px,5vw,72px);
+    line-height:1.08;letter-spacing:-.028em;
+    color:var(--plum);
+    margin-top:1.4vh;
+  }
+  h2.h em{font-style:normal;color:var(--coral);font-weight:600}
+  h2.h.fit{font-size:clamp(22px,2.9vw,46px);white-space:nowrap;letter-spacing:-.022em;line-height:1.1}
+  h3.sh{
+    font-family:"Poppins","Helvetica Neue",Helvetica,Arial,sans-serif;
+    font-weight:500;font-size:clamp(22px,2.4vw,32px);
+    color:var(--plum);letter-spacing:-.018em;margin-bottom:.6em;line-height:1.2;
+  }
+  h3.sh em{font-style:normal;color:var(--violet);font-weight:500}
+
+  .lede{
+    font-family:"Inter",sans-serif;
+    font-size:clamp(17px,1.6vw,22px);
+    line-height:1.55;color:var(--plum);opacity:.92;font-weight:400;
+    max-width:64ch;margin-top:2.4vh;
+  }
+  .lede i, .lede em{font-style:normal;color:var(--violet);font-weight:600}
+  ul.points li i, ul.points li em{font-style:normal;color:var(--violet);font-weight:600}
+
+  .grid-2{display:grid;grid-template-columns:1.1fr 1fr;gap:5vw;align-items:start;margin-top:3vh}
+  .grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:2.4vw;margin-top:3vh}
+  .grid-4{display:grid;grid-template-columns:repeat(4,1fr);gap:1.6vw;margin-top:3vh}
+  .grid-5{display:grid;grid-template-columns:repeat(5,1fr);gap:1.4vw;margin-top:3vh}
+
+  .hl{height:1px;background:var(--line);margin:2.6vh 0;width:100%}
+  .hl.short{width:120px;background:var(--plum);opacity:.4}
+
+  ul.points{list-style:none;display:flex;flex-direction:column;gap:1.6vh;margin-top:2vh}
+  ul.points li{
+    position:relative;padding-left:36px;
+    font-size:clamp(17px,1.6vw,23px);line-height:1.55;color:var(--plum);max-width:66ch;font-weight:400;
+  }
+  ul.points li b{font-weight:600}
+  ul.points li::before{
+    content:"";position:absolute;left:0;top:.85em;width:20px;height:1.5px;background:var(--coral);
+  }
+  ul.points.violet li::before{background:var(--violet)}
+  ul.points.dots li::before{
+    content:"";width:10px;height:10px;border-radius:50%;
+    background:var(--coral);top:.55em;
+  }
+  ul.points.dots.violet li::before{background:var(--violet)}
+
+  ol.steps{list-style:none;counter-reset:s;display:grid;grid-template-columns:repeat(5,1fr);gap:1.4vw;margin-top:3vh}
+  ol.steps li{counter-increment:s;border-top:1px solid var(--plum);padding-top:14px;min-height:22vh}
+  ol.steps li::before{
+    content:"0" counter(s);
+    display:block;font-family:"Inter","Helvetica Neue",Arial,sans-serif;font-size:11px;letter-spacing:.18em;color:var(--coral);margin-bottom:10px;
+  }
+  ol.steps li .lbl{
+    font-family:"Poppins","Helvetica Neue",Helvetica,Arial,sans-serif;font-size:clamp(24px,2.2vw,34px);color:var(--plum);margin-bottom:8px;letter-spacing:-.005em;line-height:1.15;
+  }
+  ol.steps li p{font-size:15px;line-height:1.55;color:var(--plum);opacity:.88}
+
+  .card{
+    border:1px solid var(--line);background:rgba(255,255,255,.55);
+    backdrop-filter:blur(6px);
+    padding:22px 22px 20px;border-radius:2px;
+  }
+  .card .k{font-family:"Inter","Helvetica Neue",Arial,sans-serif;font-size:12px;letter-spacing:.18em;color:var(--coral);text-transform:uppercase;margin-bottom:10px;font-weight:500}
+  .card h4{font-family:"Poppins","Helvetica Neue",Helvetica,Arial,sans-serif;font-weight:400;font-size:clamp(22px,2vw,30px);color:var(--plum);margin-bottom:10px;letter-spacing:-.005em;line-height:1.15}
+  .card p{font-size:15px;line-height:1.6;color:var(--plum);opacity:.9}
+  a.card-link{
+    display:inline-block;margin-top:14px;
+    font-family:"Inter","Helvetica Neue",Arial,sans-serif;
+    font-size:12px;letter-spacing:.2em;text-transform:uppercase;font-weight:600;
+    color:var(--coral);text-decoration:none;
+    border-bottom:1px solid var(--coral);padding-bottom:2px;
+    transition:color .2s ease,border-color .2s ease;
+  }
+  a.card-link:hover{color:var(--plum);border-color:var(--plum)}
+
+  table.t{width:100%;border-collapse:collapse;margin-top:2vh;font-size:clamp(15px,1.3vw,19px)}
+  table.t th,table.t td{
+    text-align:left;padding:16px 14px;border-bottom:1px solid var(--line-soft);vertical-align:top;line-height:1.55;color:var(--plum);
+  }
+  table.t th{
+    font-family:"Inter","Helvetica Neue",Arial,sans-serif;font-weight:500;font-size:12px;letter-spacing:.18em;text-transform:uppercase;color:var(--coral);
+    border-bottom:1.5px solid var(--plum);padding-bottom:12px;
+  }
+  table.t td .b{font-family:"Poppins","Helvetica Neue",Helvetica,Arial,sans-serif;font-size:1.15em;color:var(--plum);display:block;margin-bottom:2px}
+
+  .pull{
+    font-family:"Poppins","Helvetica Neue",Helvetica,Arial,sans-serif;font-style:normal;font-weight:500;
+    font-size:clamp(26px,3vw,44px);line-height:1.22;color:var(--plum);
+    max-width:28ch;margin-top:3vh;letter-spacing:-.022em;
+  }
+  .pull em{color:var(--coral);font-style:normal;font-weight:600}
+  .pull .accent{color:var(--violet);font-style:normal;font-weight:600}
+
+  a.inline-link{
+    color:var(--coral);text-decoration:none;
+    border-bottom:1px solid currentColor;padding-bottom:1px;
+    transition:color .2s ease;
+  }
+  a.inline-link:hover{color:#fff}
+
+  /* inline flow line: Thought → Implement → ... */
+  .flow{
+    margin-top:3vh;display:flex;flex-wrap:nowrap;align-items:baseline;gap:10px;
+    font-family:"Poppins","Helvetica Neue",Helvetica,Arial,sans-serif;
+    font-size:clamp(11px,1.05vw,17px);letter-spacing:.01em;line-height:1.3;
+    white-space:nowrap;
+  }
+  .flow .step{color:var(--coral);font-weight:400}
+  .flow .step.ongoing{color:var(--violet-soft);font-weight:400}
+  .flow .sep{color:var(--cream);opacity:.55;font-weight:400}
+
+  /* hand-lettered cursive accent quote */
+  .cursive{
+    font-family:"Dancing Script", "Brush Script MT", cursive;
+    font-weight:600;font-style:normal;
+    font-size:clamp(28px,3.4vw,52px);line-height:1.15;letter-spacing:.005em;
+    color:var(--coral);display:block;margin:3.6vh 0 3.6vh;
+  }
+
+  .kicker{
+    position:absolute;left:7vw;right:7vw;bottom:5vh;
+    display:flex;justify-content:space-between;align-items:flex-end;
+    font-family:"Inter","Helvetica Neue",Arial,sans-serif;font-size:12px;letter-spacing:.18em;text-transform:uppercase;color:var(--plum);opacity:.78;font-weight:500;
+    z-index:3;
+  }
+  .kicker .right{color:var(--coral);opacity:1}
+
+  /* dark hero / closing variants */
+  .slide.dark{background:var(--plum)}
+  .slide.dark *{color:var(--cream)}
+  .slide.dark::before{background:radial-gradient(closest-side, rgba(232,117,138,.42), transparent 70%);opacity:.9}
+  .slide.dark::after{background:radial-gradient(closest-side, rgba(180,154,255,.35), transparent 70%);opacity:.9}
+  .slide.dark .eyebrow{color:var(--coral)}
+  .slide.dark .eyebrow .rn{color:var(--cream);opacity:.6}
+  .slide.dark .eyebrow .bar{background:var(--cream);opacity:.4}
+  .slide.dark h1.title em{color:var(--coral)}
+  .slide.dark h2.h em{color:var(--coral)}
+  .slide.dark .hl{background:rgba(255,255,255,.18)}
+  .slide.dark .lede{opacity:.85}
+  .slide.dark ul.points li{color:var(--cream)}
+  .slide.dark ul.points li::before{background:var(--coral)}
+  .slide.dark table.t th{color:var(--coral);border-bottom-color:rgba(255,255,255,.5)}
+  .slide.dark table.t td{border-bottom-color:rgba(255,255,255,.12);color:var(--cream)}
+  .slide.dark .card{background:rgba(255,255,255,.05);border-color:rgba(255,255,255,.15)}
+  .slide.dark .card p{opacity:.82}
+  .slide.dark .kicker{color:var(--cream);opacity:.65}
+  .slide.dark .kicker .right{color:var(--coral);opacity:.95}
+  .slide.dark .stat .n{color:var(--cream)}
+  .slide.dark .stat .n em{color:var(--coral)}
+  .slide.dark .stat .v{color:var(--cream)}
+  .slide.dark .stat .cat{color:var(--coral)}
+  .slide.dark .stat .l{color:var(--cream);opacity:.85}
+  .slide.dark .pull{color:var(--cream)}
+  .slide.dark .pull em{color:var(--coral)}
+  .slide.dark .note{color:var(--coral-soft);opacity:.95}
+  .slide.dark .chip{color:var(--cream);border-color:var(--cream)}
+
+  /* sub note */
+  .note{
+    font-family:"Inter","Helvetica Neue",Arial,sans-serif;font-size:12px;letter-spacing:.18em;text-transform:uppercase;
+    color:var(--violet);margin-top:2vh;font-weight:500;line-height:1.55;
+  }
+
+  /* progress */
+  .progress{position:fixed;left:0;bottom:0;height:2px;background:var(--coral);z-index:20;transition:width .3s ease}
+
+  /* tiny help */
+  .help{position:fixed;right:10px;bottom:10px;font-family:"Inter","Helvetica Neue",Arial,sans-serif;font-size:10px;color:var(--muted);letter-spacing:.12em;z-index:10;opacity:.6}
+
+  /* end slide */
+  .end-mark{font-family:"Poppins","Helvetica Neue",Helvetica,Arial,sans-serif;font-weight:600;font-style:normal;font-size:clamp(72px,10vw,160px);color:var(--coral);line-height:.9;margin-top:auto;letter-spacing:-.04em}
+
+  /* tight side-by-side */
+  .two-col{display:grid;grid-template-columns:1fr 1fr;gap:4vw;margin-top:3vh}
+  .two-col h3.sh{margin-bottom:1vh}
+
+  /* big numbers row */
+  .stats{display:grid;grid-template-columns:1fr 1fr;gap:4vw;margin-top:3vh}
+  .stat{display:flex;flex-direction:column;gap:10px;max-width:42ch}
+  .stat .n{font-family:"Poppins","Helvetica Neue",Helvetica,Arial,sans-serif;font-weight:600;font-size:clamp(56px,7.4vw,112px);line-height:.95;color:var(--plum);letter-spacing:-.045em;display:flex;align-items:baseline;gap:.05em}
+  .stat .n em{color:var(--coral);font-style:normal;font-weight:700}
+  .stat .n .arrow{color:var(--coral);font-weight:500;font-size:.55em;letter-spacing:0}
+  .stat .cat{font-family:"Inter","Helvetica Neue",Arial,sans-serif;font-size:13px;letter-spacing:.22em;text-transform:uppercase;color:var(--coral);font-weight:600;margin-top:4px}
+  .stat .v{font-family:"Poppins","Helvetica Neue",Helvetica,Arial,sans-serif;font-weight:500;font-size:clamp(20px,2vw,28px);color:var(--plum);letter-spacing:-.015em;line-height:1.2}
+  .stat .l{font-family:"Inter","Helvetica Neue",Arial,sans-serif;font-size:15px;line-height:1.5;text-transform:none;letter-spacing:normal;color:var(--plum);opacity:.85;font-weight:400;margin-top:2px;max-width:38ch}
+
+  @media (max-width:900px){
+    .stats{grid-template-columns:1fr}
+  }
+
+  /* habits list with mono index */
+  ol.habits{list-style:none;counter-reset:h;display:grid;grid-template-columns:1fr 1fr;gap:1.2vw 4vw;margin-top:2.4vh}
+  ol.habits li{counter-increment:h;padding:14px 0;border-top:1px solid var(--line);display:grid;grid-template-columns:42px 1fr;gap:14px;align-items:start}
+  ol.habits li::before{
+    content:"0" counter(h);
+    font-family:"Inter","Helvetica Neue",Arial,sans-serif;font-size:11px;letter-spacing:.18em;color:var(--coral);margin-top:6px;
+  }
+  ol.habits li .t{font-family:"Poppins","Helvetica Neue",Helvetica,Arial,sans-serif;font-size:clamp(21px,1.9vw,26px);color:var(--plum);letter-spacing:-.005em;margin-bottom:6px;line-height:1.15}
+  ol.habits li .d{font-size:15px;line-height:1.55;color:var(--plum);opacity:.88}
+
+  /* Q list */
+  ol.qs{list-style:none;counter-reset:q;display:flex;flex-direction:column;gap:2.2vh;margin-top:3vh}
+  ol.qs{gap:1.6vh}
+  ol.qs li{counter-increment:q;padding-left:44px;position:relative;font-family:"Inter","Helvetica Neue",Arial,sans-serif;font-style:normal;font-weight:400;font-size:clamp(17px,1.6vw,23px);line-height:1.55;color:var(--plum);max-width:66ch;letter-spacing:-.005em}
+  ol.qs li::before{
+    content:counter(q,lower-roman) ".";
+    position:absolute;left:0;top:.05em;
+    font-family:"Inter","Helvetica Neue",Arial,sans-serif;font-style:normal;font-weight:500;font-size:13px;color:var(--coral);letter-spacing:.1em;text-transform:uppercase;
+  }
+
+  /* layered list (9 layers) */
+  .layers{display:grid;grid-template-columns:repeat(3,1fr);gap:1vw;margin-top:2.6vh}
+  .layers .lyr{border:1px solid var(--line);padding:14px 14px 16px;border-radius:2px;background:rgba(255,255,255,.5)}
+  .layers .lyr .n{font-family:"Inter","Helvetica Neue",Arial,sans-serif;font-size:11px;letter-spacing:.18em;color:var(--coral)}
+  .layers .lyr .t{font-family:"Poppins","Helvetica Neue",Helvetica,Arial,sans-serif;font-size:22px;color:var(--plum);margin-top:8px;letter-spacing:-.005em;line-height:1.2}
+
+  /* tag chips */
+  .chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:2vh}
+  .chip{
+    font-family:"Inter","Helvetica Neue",Arial,sans-serif;font-size:11px;letter-spacing:.18em;text-transform:uppercase;
+    color:var(--plum);padding:6px 10px;border:1px solid var(--plum);border-radius:2px;background:transparent;
+  }
+  .chip.fill{background:var(--plum);color:var(--cream);border-color:var(--plum)}
+  .chip.coral{background:var(--coral);color:var(--cream);border-color:var(--coral)}
+  .chip.violet{background:var(--violet);color:var(--cream);border-color:var(--violet)}
+
+  /* all slide content sits relative above the watercolor wash */
+  .slide > *:not(.kicker){position:relative;z-index:1}
+
+  /* Magnific hero artwork backgrounds */
+  .slide.hero-img::before,
+  .slide.hero-img::after{display:none}
+  .slide.hero-img{
+    background-color:var(--plum-deep);
+    background-size:cover;background-position:center;background-repeat:no-repeat;
+  }
+  .slide.hero-1{
+    background-image:
+      linear-gradient(to bottom right, rgba(11,1,24,.72), rgba(11,1,24,.35) 45%, rgba(11,1,24,.7) 100%),
+      url('hero_1_title.png');
+  }
+  .slide.hero-11{
+    background-image:
+      linear-gradient(to right, rgba(11,1,24,.90), rgba(11,1,24,.55) 45%, rgba(11,1,24,.15) 100%),
+      url('hero_11_cost.png');
+  }
+
+  /* samples row */
+  .samples{margin-top:2.6vh;display:flex;align-items:center;gap:24px;flex-wrap:wrap}
+  .samples-label{
+    font-family:"Inter","Helvetica Neue",Arial,sans-serif;
+    font-size:12px;letter-spacing:.22em;text-transform:uppercase;color:var(--coral);font-weight:500;
+    padding-right:24px;border-right:1px solid var(--line);
+  }
+  .samples-row{display:flex;gap:16px;flex-wrap:wrap}
+  a.sample{
+    display:flex;flex-direction:column;gap:6px;text-decoration:none;
+    padding:12px 18px;border:1px solid var(--plum);border-radius:2px;background:rgba(255,255,255,.5);
+    min-width:220px;transition:background .2s ease, transform .2s ease;
+  }
+  a.sample:hover{background:var(--plum);transform:translateY(-1px)}
+  a.sample:hover .sample-k{color:var(--coral)}
+  a.sample:hover .sample-url{color:var(--cream)}
+  .sample-k{
+    font-family:"Inter","Helvetica Neue",Arial,sans-serif;
+    font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--coral);font-weight:500;
+  }
+  .sample-url{
+    font-family:"Poppins","Helvetica Neue",Helvetica,Arial,sans-serif;
+    font-size:18px;color:var(--plum);font-weight:500;letter-spacing:-.01em;
+  }
+
+  /* intro / about slide */
+  .intro-grid{
+    display:grid;grid-template-columns:.85fr 1.15fr;gap:4vw;align-items:start;
+    height:100%;padding-top:1vh;
+  }
+  .intro-photo{display:flex;flex-direction:column;gap:2.2vh;align-items:flex-start}
+  .intro-photo img{
+    width:100%;max-width:340px;height:auto;aspect-ratio:3/4;object-fit:cover;
+    border-radius:6px;
+    box-shadow:0 24px 60px -22px rgba(26,5,51,.45), 0 2px 8px rgba(26,5,51,.1);
+  }
+  .intro-name{display:flex;flex-direction:column;gap:6px}
+  .intro-eyebrow{
+    font-family:"Inter","Helvetica Neue",Arial,sans-serif;
+    font-size:11px;letter-spacing:.22em;text-transform:uppercase;color:var(--coral);font-weight:600;
+  }
+  .intro-h{
+    font-family:"Poppins","Helvetica Neue",Helvetica,Arial,sans-serif;font-weight:600;
+    font-size:clamp(28px,3vw,42px);line-height:1.05;letter-spacing:-.02em;color:var(--plum);
+  }
+  .intro-h em{font-style:normal;color:var(--coral);font-weight:600}
+  .intro-role{
+    font-family:"Inter",sans-serif;font-size:clamp(14px,1.1vw,17px);color:var(--plum);opacity:.85;font-weight:400;
+  }
+  .intro-role b{font-weight:600}
+
+  .intro-body{display:flex;flex-direction:column;gap:1.6vh;max-height:84vh;overflow:hidden}
+  .intro-section{display:flex;flex-direction:column;gap:.4vh}
+  .intro-sh{
+    font-family:"Inter","Helvetica Neue",Arial,sans-serif;
+    font-size:11px;letter-spacing:.22em;text-transform:uppercase;color:var(--coral);font-weight:600;
+    border-top:1px solid var(--line);padding-top:.9vh;
+  }
+  .intro-list{list-style:none;display:flex;flex-direction:column;gap:.55vh}
+  .intro-list li{
+    position:relative;padding-left:18px;
+    font-family:"Inter",sans-serif;font-size:clamp(12.5px,1vw,15.5px);line-height:1.45;color:var(--plum);font-weight:400;
+  }
+  .intro-list li b{font-weight:600}
+  .intro-list li::before{
+    content:"";position:absolute;left:0;top:.6em;width:6px;height:6px;border-radius:50%;background:var(--coral);
+  }
+  .intro-list.violet li::before{background:var(--violet)}
+  .intro-pills{
+    display:inline-block;margin-top:4px;
+    font-family:"Inter",sans-serif;font-weight:500;color:var(--violet);font-size:.95em;letter-spacing:.005em;
+  }
+  .intro-philosophy{
+    font-family:"Poppins","Helvetica Neue",Helvetica,Arial,sans-serif;font-weight:500;
+    font-size:clamp(18px,1.7vw,24px);line-height:1.25;color:var(--coral);letter-spacing:-.015em;
+    margin-top:.4vh;
+  }
+  .intro-thanks{
+    font-family:"Inter",sans-serif;font-size:clamp(12px,.95vw,15px);line-height:1.5;color:var(--plum);opacity:.9;
+    border-top:1px solid var(--line);padding-top:1vh;margin-top:.6vh;
+  }
+  .intro-thanks b{font-weight:600;color:var(--violet)}
+
+  @media (max-width:900px){
+    .intro-grid{grid-template-columns:1fr}
+    .intro-photo img{max-width:240px}
+  }
+
+  /* slide 1 byline */
+  .byline{
+    font-family:"Inter","Helvetica Neue",Arial,sans-serif;
+    font-size:clamp(14px,1.15vw,18px);font-weight:500;letter-spacing:.02em;
+    color:var(--cream);opacity:.95;margin-top:.6vh;
+  }
+  .byline em{font-style:normal;color:var(--coral);font-weight:600}
+  .byline .sep{color:var(--cream);opacity:.5;margin:0 6px}
+
+  /* join slide layout */
+  .join-grid{
+    display:grid;grid-template-columns:1.15fr .85fr;gap:5vw;align-items:center;margin-top:2.4vh;
+  }
+  .join-qr{display:flex;justify-content:center;align-items:center}
+  .join-qr img{
+    max-width:100%;max-height:62vh;width:auto;height:auto;object-fit:contain;
+    background:#fff;padding:18px;border-radius:8px;
+    box-shadow:0 24px 60px -20px rgba(26,5,51,.35), 0 2px 8px rgba(26,5,51,.08);
+  }
+  @media (max-width:900px){.join-grid{grid-template-columns:1fr}}
+
+  /* image slide */
+  .imgwrap{
+    flex:1;display:flex;align-items:center;justify-content:center;
+    margin-top:2.4vh;min-height:0;
+  }
+  .imgwrap img{
+    max-width:100%;max-height:62vh;width:auto;height:auto;
+    object-fit:contain;border-radius:4px;
+    box-shadow:0 24px 60px -20px rgba(26,5,51,.35), 0 2px 8px rgba(26,5,51,.08);
+    background:#fff;
+  }
+
+  /* mobile fallback */
+  @media (max-width:720px){
+    .grid-2,.grid-3,.grid-4,.grid-5,ol.steps,ol.habits,.two-col,.layers{grid-template-columns:1fr}
+    .slide{padding:5vh 6vw}
+  }
+</style>
+</head>
+<body>
+<div class="deck" id="deck">
+
+<!-- ========= SLIDE 1 — TITLE ========= -->
+<section class="slide dark active hero-center hero-img hero-1" data-title="Session 6">
+  <div class="eyebrow"><span>Session vi · Trainer's Handbook</span></div>
+  <h1 class="title">Vibe Code.<br>No Code.<br><em>No Limits.</em></h1>
+  <p class="lede" style="opacity:.78;max-width:54ch">Vibe Coding &nbsp;|&nbsp; Building Websites &nbsp;|&nbsp; Building advance apps &amp; systems</p>
+  <div class="hl"></div>
+  <p class="byline">Nik Patel <span class="sep">·</span> Guest Coach (Embark Institute) <span class="sep">·</span> Founder, <em>NineGravity</em></p>
+  <div class="kicker">
+    <div></div>
+    <div class="right">Cohort — Engineering Faculty, HODs, Principals &amp; PhD Scholars</div>
+  </div>
+</section>
+
+<!-- ========= SLIDE 2 — INTRO / ABOUT NIK ========= -->
+<section class="slide" data-title="About Nik">
+  <div class="intro-grid">
+    <div class="intro-photo">
+      <img src="nik_image.png" alt="Nik Patel" />
+      <div class="intro-name">
+        <span class="intro-eyebrow">About the trainer</span>
+        <h2 class="intro-h">Nik <em>Patel</em></h2>
+        <p class="intro-role">Founder, <b>NineGravity</b> &amp; <b>Airtoniq</b></p>
+      </div>
+    </div>
+    <div class="intro-body">
+      <div class="intro-section">
+        <h4 class="intro-sh">Background</h4>
+        <ul class="intro-list">
+          <li>14+ years in sales, business growth and operations.</li>
+          <li>Worked primarily with US clients. Known in the industry as <b>"Nik Patel"</b>.</li>
+          <li>Started solo. Learned the six core pillars firsthand:<br><span class="intro-pills">Sales · Operations · Marketing · Finance · HR · Code</span></li>
+          <li>Left a high-paying corporate job during the 2022 lockdown to build my own agency.</li>
+          <li>Scaled from 1 to 12 in year one. Added 20+ more the following year.</li>
+          <li>Since 2022, 3 hours every single day invested in learning, alongside running the business.</li>
+          <li>Consistently hire coaches and mentors to close skill gaps and grow faster.</li>
+          <li>Every year starts with written goals, then relentless execution.</li>
+        </ul>
+      </div>
+      <div class="intro-section">
+        <h4 class="intro-sh">What I do</h4>
+        <ul class="intro-list violet">
+          <li>Build digital products, AI systems and scalable businesses.</li>
+          <li>Teach and coach based on real-world execution, not theory.</li>
+          <li>Guest speaker at entrepreneur and business communities, including <b>SIRE Ahmedabad</b>.</li>
+          <li>Passionate about personal growth, entrepreneurship and helping people move forward.</li>
+        </ul>
+      </div>
+      <div class="intro-section intro-quote">
+        <h4 class="intro-sh">Personal philosophy</h4>
+        <p class="intro-philosophy">&ldquo;To be kind. To be helpful. To keep building.&rdquo;</p>
+      </div>
+      <p class="intro-thanks">Today I'm honored to speak with you alongside <b>Embark Institute</b>. Special thanks to <b>Umang Patel</b> and <b>Ghyanshyam Rathod</b> for this opportunity.</p>
+    </div>
+  </div>
+  <div class="kicker"><div>02 / 32</div></div>
+</section>
+
+<!-- ========= SLIDE 3 — OUTCOMES ========= -->
+<section class="slide" data-title="What you walk out with">
+  <div class="eyebrow"><span>Outcomes</span></div>
+  <h2 class="h">What you walk out <em>with.</em></h2>
+  <div class="grid-3">
+    <div class="card">
+      <div class="k">01 — Built</div>
+      <h4>A live, deployed page or prototype</h4>
+      <p>Built entirely with AI assistance. No prior coding required.</p>
+    </div>
+    <div class="card">
+      <div class="k">02 — Repeatable</div>
+      <h4>A 5-layer workflow you can reuse</h4>
+      <p>Content → Context → Design → Dev → QA. Works for any future build.</p>
+    </div>
+    <div class="card">
+      <div class="k">03 — Mental model</div>
+      <h4>When to vibe-code &amp; when not to</h4>
+      <p>And how to teach this to your students.</p>
+    </div>
+  </div>
+  <div class="kicker"><div>03 / 32</div></div>
+</section>
+
+<!-- ========= SLIDE 3 — QUESTIONS ========= -->
+<section class="slide" data-title="Opening questions">
+  <div class="eyebrow"><span>Questions for the room</span></div>
+  <h2 class="h">Before we begin. <em>Four questions.</em></h2>
+  <ol class="qs">
+    <li>Has anyone here actually built a site or app using an AI tool? Which one? And what happened?</li>
+    <li>What are your real pain points. The things you wish a small app would handle for you?</li>
+    <li>When you hear "vibe coding". Hope, suspicion, or confusion? All three are fine.</li>
+    <li>Who has paid a developer to build something? How much, and how long did it take?</li>
+  </ol>
+  <div class="kicker"><div>04 / 32</div></div>
+</section>
+
+<!-- ========= SLIDE 4. WHAT VIBE CODING IS ========= -->
+<section class="slide" data-title="What vibe coding is">
+  <div class="eyebrow"><span>Vibe Coding</span></div>
+  <h2 class="h">What it <em>actually</em> is.</h2>
+  <ul class="points dots">
+    <li>You describe what you want in English. The AI writes HTML, CSS &amp; JavaScript.</li>
+    <li>It is <i>not</i> magic. The AI is translating your spec into well-known patterns it has seen thousands of times.</li>
+    <li>You are still the architect. You decide what to build, what looks good, and what works for your audience.</li>
+    <li>AI is the contractor, <i>not</i> the client.</li>
+  </ul>
+  <div class="kicker"><div>05 / 32</div></div>
+</section>
+
+<!-- ========= SLIDE 5. WHERE VIBE CODING FAILS ========= -->
+<section class="slide" data-title="Where it fails">
+  <div class="eyebrow"><span>Vibe Coding · failure modes</span></div>
+  <h2 class="h">Where it <em>fails.</em></h2>
+  <ul class="points violet dots">
+    <li>Genuinely novel UI patterns the model has never seen.</li>
+    <li>Complex backend logic with deep business rules. Without proper instructions and execution.</li>
+    <li>Real-time integration with institutional ERP, finance systems or proprietary databases. These almost always need a human developer.</li>
+  </ul>
+  <p class="pull" style="max-width:none;white-space:nowrap">Know the edges <em>before</em> you ship the middle.</p>
+  <div class="kicker"><div>06 / 32</div></div>
+</section>
+
+<!-- ========= SLIDE 6. FOUR-LAYER STACK ========= -->
+<section class="slide" data-title="The four-layer stack">
+  <div class="eyebrow"><span>The Four-Layer Stack</span></div>
+  <h2 class="h">The <em>four-layer</em> stack.</h2>
+  <table class="t">
+    <thead><tr><th>Layer</th><th>What it means</th><th>Tool we'll use</th></tr></thead>
+    <tbody>
+      <tr><td><span class="b">Frontend</span></td><td>What the user sees in the browser. The page itself.</td><td>Lovable.dev · v0.dev · Claude · Bolt.new</td></tr>
+      <tr><td><span class="b">Hosting</span></td><td>The server where the page lives so others can visit.</td><td>Vercel (free tier)</td></tr>
+      <tr><td><span class="b">Domain</span></td><td>The web address. E.g. <code style="font-family:'JetBrains Mono',monospace;font-size:.95em">yourcollege.edu/cse-portal</code></td><td>Vercel URL first; custom domain later</td></tr>
+      <tr><td><span class="b">Backend <span style="opacity:.55">(optional)</span></span></td><td>Database and server logic. Only if you collect or store data.</td><td>Supabase (free). Only if needed</td></tr>
+    </tbody>
+  </table>
+  <p class="note">Display-only = Frontend + Hosting + Domain. Login or submit = add Backend.</p>
+  <div class="kicker"><div>07 / 32</div></div>
+</section>
+
+<!-- ========= SLIDE 7. FOUR-LAYER DIAGRAM ========= -->
+<section class="slide" data-title="Four-layer stack. Diagram">
+  <div class="eyebrow"><span>The Four-Layer Stack · Diagram</span></div>
+  <h2 class="h fit" style="font-size:clamp(30px,4.2vw,68px)">Frontend &middot; Hosting &middot; Domain &middot; <em>Backend.</em></h2>
+  <div class="imgwrap">
+    <img src="fourlayer.png" alt="The four-layer stack: Frontend, Hosting, Domain, Backend" />
+  </div>
+  <div class="kicker"><div>08 / 32</div></div>
+</section>
+
+<!-- ========= SLIDE 8. 5-STEP WORKFLOW ========= -->
+<section class="slide" data-title="5-step build workflow">
+  <div class="eyebrow"><span>The 5-Step Build Workflow</span></div>
+  <h2 class="h fit">Describe · Generate · Review · Refine · <em>Deploy.</em></h2>
+  <ol class="steps">
+    <li><div class="lbl">Describe</div><p>Be specific. Clearer prompt → closer first output. Vague prompts produce generic AI-looking sites.</p></li>
+    <li><div class="lbl">Generate</div><p>Let the AI build v1. Usually under two minutes. Don't interrupt. Wait, then look.</p></li>
+    <li><div class="lbl">Review</div><p>Open it. Click around. What works? What's wrong? What's missing? Be honest.</p></li>
+    <li><div class="lbl">Refine</div><p>Tell the AI in plain English. Iterate 3–5 times. "Make the hero taller." "Lighten the navy." "Add a phone field."</p></li>
+    <li><div class="lbl">Deploy</div><p>Push to Vercel or GitHub Pages. Live URL in under five minutes. Shareable, public, free.</p></li>
+  </ol>
+  <div class="kicker"><div>09 / 32</div></div>
+</section>
+
+<!-- ========= SLIDE 9. 5-STEP WORKFLOW DIAGRAM ========= -->
+<section class="slide" data-title="5-step workflow. Diagram">
+  <div class="eyebrow"><span>The 5-Step Build Workflow · Diagram</span></div>
+  <h2 class="h fit">Describe &middot; Generate &middot; Review &middot; Refine &middot; <em>Deploy.</em></h2>
+  <div class="imgwrap">
+    <img src="5step.png" alt="The 5-step build workflow: Describe, Generate, Review, Refine, Deploy" />
+  </div>
+  <div class="kicker"><div>10 / 32</div></div>
+</section>
+
+<!-- ========= SLIDE 10. WHEN NOT TO VIBE CODE ========= -->
+<section class="slide" data-title="When NOT to vibe code">
+  <div class="eyebrow"><span>When NOT to Vibe Code · myths</span></div>
+  <h2 class="h">When <em>not</em> to vibe code.</h2>
+  <ul class="points dots">
+    <li>Anything handling student grades, financial data or personal information. Without IT department review.</li>
+    <li>Anything where bugs have legal consequences. Admission portals, grade publishing.</li>
+    <li>Sites that must integrate with institutional ERP. That needs a developer.</li>
+  </ul>
+  <div class="kicker"><div>11 / 32</div></div>
+</section>
+
+<!-- ========= SLIDE 11. COST CURVE ========= -->
+<section class="slide dark hero-img hero-11" data-title="Cost curve">
+  <div class="eyebrow"><span>Everything Comes With a Price</span></div>
+  <h2 class="h">Nothing is <em>free.</em></h2>
+  <div class="stats">
+    <div class="stat">
+      <div class="n">10×<span class="arrow"> ↓</span></div>
+      <div class="cat">Time investment</div>
+      <div class="v">300 Days → 30 Days</div>
+      <div class="l">What took nearly 10 months in 2021–22 can now be built in under 30 days.</div>
+    </div>
+    <div class="stat">
+      <div class="n">10×<span class="arrow"> ↓</span></div>
+      <div class="cat">Manpower need</div>
+      <div class="l">What once required large execution teams can now ship with lean, AI-powered operators.</div>
+    </div>
+  </div>
+  <p class="pull">That's not a productivity tweak. <em>That's a structural shift.</em></p>
+  <p class="note">AI &amp; automation have fundamentally compressed the cost, time and manpower curve.</p>
+  <p class="note" style="margin-top:1vh">Story: Sherunsit.org, a non-profit my team built in 2022. Two guesses: how long did it take, and how much did I charge?</p>
+  <div class="kicker"><div>12 / 32</div></div>
+</section>
+
+<!-- ========= SLIDE 10. TOOLS & METHODS ========= -->
+<section class="slide" data-title="Live demonstrations">
+  <div class="eyebrow"><span>Live Demonstrations</span></div>
+  <h2 class="h">Tools &amp; <em>methods.</em></h2>
+  <div class="grid-2" style="margin-top:7vh">
+    <div>
+      <h3 class="sh">Tools we will use</h3>
+      <ul class="points dots">
+        <li>Claude. Web, app, Claude Code (terminal), Claude Cowork, Claude Design</li>
+        <li>Lovable.dev</li>
+        <li>Bolt.new</li>
+      </ul>
+    </div>
+    <div>
+      <h3 class="sh">Three <em>entry points</em></h3>
+      <ul class="points violet dots">
+        <li><b>Terminal</b>. Claude Code, for those comfortable with a command line.</li>
+        <li><b>App</b>. Claude desktop / Cowork, for a focused workspace.</li>
+        <li><b>Web</b>. Claude.ai, Lovable.dev, Bolt.new. Zero install, just a browser.</li>
+      </ul>
+    </div>
+  </div>
+  <div class="kicker"><div>13 / 32</div></div>
+</section>
+
+<!-- ========= SLIDE 11. 5-LAYER PROCESS OVERVIEW ========= -->
+<section class="slide" data-title="5-layer build process">
+  <div class="eyebrow"><span>Building with Claude</span></div>
+  <h2 class="h">The <em>5-layer</em> build process.</h2>
+  <p class="lede">Whether the final tool is Claude, Lovable or Bolt. The process underneath stays the same. Skip a layer and the output suffers in a predictable way.</p>
+  <div class="grid-5">
+    <div class="card"><div class="k">Layer 01</div><h4>Content</h4><p>Copy that converts. Verified line by line.</p></div>
+    <div class="card"><div class="k">Layer 02</div><h4>Context</h4><p>Brand colours, fonts, tone. The look-and-feel brief.</p></div>
+    <div class="card"><div class="k">Layer 03</div><h4>Design</h4><p>The build prompt + your chosen tool. Compare outputs.</p></div>
+    <div class="card"><div class="k">Layer 04</div><h4>Dev &amp; DB</h4><p>Supabase, local DB or APIs. Only if needed.</p></div>
+    <div class="card"><div class="k">Layer 05</div><h4>QA &amp; Modify</h4><p>Click everything. Open on phone. Watch a real user.</p></div>
+  </div>
+  <p class="note">Spend a few minutes more on Content &amp; Context up front. The rest of the build moves 2× faster.</p>
+  <div class="kicker"><div>14 / 32</div></div>
+</section>
+
+<!-- ========= SLIDE 12. LAYER 1 CONTENT ========= -->
+<section class="slide" data-title="Layer 1. Content">
+  <div class="eyebrow"><span>Content</span></div>
+  <h2 class="h">Layer 1. <em>Content.</em></h2>
+  <p class="lede">How to write copy that converts.</p>
+  <ul class="points dots">
+    <li>Capture the existing content. Whatever you have today, even three bullets scribbled on a notice.</li>
+    <li>Give Claude the conversion formula and the context: who is reading this, what should they do after, what makes them hesitate.</li>
+    <li>Ask Claude to revise it into a sales-style landing page version. Short, scannable, action-oriented.</li>
+    <li>Verify the output line by line. This is your reputation on the page.</li>
+  </ul>
+  <div class="kicker"><div>15 / 32</div></div>
+</section>
+
+<!-- ========= SLIDE 13. LAYER 2 CONTEXT ========= -->
+<section class="slide" data-title="Layer 2. Context">
+  <div class="eyebrow"><span>Context · Branding</span></div>
+  <h2 class="h">Layer 2. <em>Context.</em></h2>
+  <p class="lede">Now Claude knows what to say. It needs to know <i>how it should look.</i></p>
+  <div class="two-col">
+    <div>
+      <h3 class="sh">Before the build prompt</h3>
+      <ul class="points dots">
+        <li><b>Brand colours</b>. Primary, secondary, accent. No palette? Pick three colours and stick to them.</li>
+        <li><b>Fonts</b>. One for headings, one for body. Google Fonts pairs work perfectly.</li>
+        <li><b>Tone</b>. Formal, friendly, energetic, academic? One word is enough.</li>
+      </ul>
+    </div>
+    <div>
+      <h3 class="sh">Why branding <em>matters</em></h3>
+      <p class="lede" style="margin-top:0">Without consistent branding, every AI output looks like every other AI output. That is the actual reason "AI-generated" became an insult. Not the code, the look.</p>
+      <p class="pull" style="margin-top:2vh">Three colours, two fonts. <em>10× more credible.</em></p>
+    </div>
+  </div>
+  <div class="kicker"><div>16 / 32</div></div>
+</section>
+
+<!-- ========= SLIDE 14. THE CLEVER MOVE ========= -->
+<section class="slide dark" data-title="The clever move">
+  <div class="eyebrow"><span>The Highest-Leverage Move</span></div>
+  <h2 class="h">The clever <em>move.</em></h2>
+  <p class="lede" style="max-width:64ch">Don't write the build prompt yourself. Give Claude (or ChatGPT) your brand guidelines plus your finalised content. And ask the AI to write the build prompt for you.</p>
+  <p class="pull" style="color:var(--cream);max-width:30ch">AI is better at writing prompts <em>for AI</em> than you are.</p>
+  <div class="kicker"><div>17 / 32</div></div>
+</section>
+
+<!-- ========= SLIDE 15. LAYER 3 DESIGN ========= -->
+<section class="slide" data-title="Layer 3. Design">
+  <div class="eyebrow"><span>Design</span></div>
+  <h2 class="h">Layer 3. <em>Design.</em></h2>
+  <p class="lede">Paste the AI-written prompt into your build tool. Run it through several. Compare.</p>
+  <div class="grid-2">
+    <div>
+      <h3 class="sh">Claude. Four ways</h3>
+      <ul class="points dots">
+        <li>Claude in VS Code / Antigravity</li>
+        <li>Claude in the terminal (Claude Code)</li>
+        <li>Claude Design</li>
+        <li>Claude Code. Full project mode</li>
+      </ul>
+    </div>
+    <div>
+      <h3 class="sh">Now <em>compare</em></h3>
+      <ul class="points violet dots">
+        <li>Same brief → Lovable.dev</li>
+        <li>Same brief → Bolt.new</li>
+        <li>Which produces the cleanest first draft? Which understands your branding best? Which one do you actually enjoy?</li>
+      </ul>
+      <p class="note">The answer is personal. There is no universal winner.</p>
+    </div>
+  </div>
+  <div class="samples">
+    <div class="samples-label">Samples</div>
+    <div class="samples-row">
+      <a class="sample" href="https://www.renewalalert.xyz/" target="_blank" rel="noopener">
+        <span class="sample-k">01. Live site</span>
+        <span class="sample-url">renewalalert.xyz</span>
+      </a>
+      <a class="sample" href="https://www.ninegravity.com/" target="_blank" rel="noopener">
+        <span class="sample-k">02. Live site</span>
+        <span class="sample-url">ninegravity.com</span>
+      </a>
+    </div>
+  </div>
+  <div class="kicker"><div>18 / 32</div></div>
+</section>
+
+<!-- ========= SLIDE 16. LAYER 4 DEV & DB ========= -->
+<section class="slide" data-title="Layer 4. Development & Database">
+  <div class="eyebrow"><span>Development &amp; Database</span></div>
+  <h2 class="h">Layer 4. <em>Dev &amp; DB.</em></h2>
+  <p class="lede">If your site needs to <i>remember</i> anything. Registrations, submissions, attendance. You need a database.</p>
+  <div class="grid-3">
+    <div class="card">
+      <div class="k">Default</div>
+      <h4>Supabase integration</h4>
+      <p>Free, hosted database. Connects in three clicks. The default for any project leaving the prototype stage.</p>
+      <a class="card-link" href="https://docs.google.com/document/d/1EoEi0TM9KN7K5bQp1gTh94Wxl18ST0ZYqVG2ulYK89Y/edit?usp=sharing" target="_blank" rel="noopener">CHECK DOC →</a>
+    </div>
+    <div class="card"><div class="k">Restricted</div><h4>Local database integration</h4><p>For projects that must stay inside the institution's network.</p></div>
+    <div class="card"><div class="k">Extend</div><h4>API integrations</h4><p>Magnific for upscaled hero video. Image gen, payments, analytics, email, calendar. Anything with a documented API.</p></div>
+  </div>
+  <div class="samples">
+    <div class="samples-label">Resources</div>
+    <div class="samples-row">
+      <a class="sample" href="https://docs.google.com/document/d/1EoEi0TM9KN7K5bQp1gTh94Wxl18ST0ZYqVG2ulYK89Y/edit?usp=sharing" target="_blank" rel="noopener">
+        <span class="sample-k">Supabase integration · detailed</span>
+        <span class="sample-url">CHECK DOC ↗</span>
+      </a>
+      <a class="sample" href="https://github.com/settings/tokens" target="_blank" rel="noopener">
+        <span class="sample-k">Git Token URL</span>
+        <span class="sample-url">github.com/settings/tokens</span>
+      </a>
+    </div>
+  </div>
+  <div class="kicker"><div>19 / 32</div></div>
+</section>
+
+<!-- ========= SLIDE 17. LAYER 5 QA ========= -->
+<section class="slide" data-title="Layer 5. QA & Modification">
+  <div class="eyebrow"><span>QA &amp; Modification</span></div>
+  <h2 class="h">Layer 5. <em>QA &amp; modify.</em></h2>
+  <p class="lede">Before sharing the URL with anyone:</p>
+  <ul class="points dots">
+    <li>Click every link. Every button. Every form field.</li>
+    <li>Open it on a phone. Most AI sites look great on laptop and break on mobile. Catch this early.</li>
+    <li>Have one colleague try it without instructions. Watch where they hesitate.</li>
+    <li>That hesitation is the bug. Even if the code is technically fine.</li>
+  </ul>
+  <p class="pull" style="max-width:none;white-space:nowrap">Iterate until the <em>experience</em> is smooth. Not just the code.</p>
+  <div class="kicker"><div>20 / 32</div></div>
+</section>
+
+<!-- ========= SLIDE 18. BEYOND THE WEBSITE ========= -->
+<section class="slide" data-title="Beyond the website">
+  <div class="eyebrow"><span>Beyond the Website</span></div>
+  <h2 class="h">Designing <em>anything.</em></h2>
+  <p class="lede">The Content → Context → Design loop works for everything else. Same prompting style, different output medium.</p>
+  <div class="grid-4">
+    <div class="card"><div class="k">01</div><h4>Brochures</h4><p>Event flyers, programme leaflets, department info packs.</p></div>
+    <div class="card"><div class="k">02</div><h4>Banners</h4><p>Social posts, conference standees, classroom posters.</p></div>
+    <div class="card"><div class="k">03</div><h4>Figma files</h4><p>When you want a designer to take the next step.</p></div>
+    <div class="card"><div class="k">04</div><h4>Anything else</h4><p>Literally anything you'd have outsourced to a junior designer.</p></div>
+  </div>
+  <p class="note">Figma + Claude. The MCP connector lets Claude read and write directly to your Figma files. Worth setting up.</p>
+  <div class="kicker"><div>21 / 32</div></div>
+</section>
+
+<!-- ========= SLIDE 19. DEPLOYMENT ========= -->
+<section class="slide" data-title="Deployment">
+  <div class="eyebrow"><span>Going Live</span></div>
+  <h2 class="h">Three deployment <em>paths.</em></h2>
+  <table class="t">
+    <thead><tr><th>Option</th><th>When to use</th><th>Time to live URL</th></tr></thead>
+    <tbody>
+      <tr><td><span class="b">Vercel</span></td><td>Default choice for any standalone site or app. Free tier is generous.</td><td>~5 minutes</td></tr>
+      <tr><td><span class="b">Artifacts (claude.ai)</span></td><td>Quick demos, single-page tools, embedded interactive prototypes.</td><td>Instant</td></tr>
+      <tr><td><span class="b">GitHub Pages</span></td><td>Static sites you want under a github.io URL. Free, forever.</td><td>~10 minutes</td></tr>
+    </tbody>
+  </table>
+  <div class="kicker"><div>22 / 32</div></div>
+</section>
+
+<!-- ========= SLIDE 20. HANDS-ON TASKS ========= -->
+<section class="slide" data-title="Hands-on tasks">
+  <div class="eyebrow"><span>Hands-On Tasks · do these today</span></div>
+  <h2 class="h">Six things. <em>before you leave.</em></h2>
+  <div class="grid-3">
+    <div class="card"><div class="k">01</div><h4>Recreate</h4><p>Find a live site you admire. Recreate 3–5 of its pages using Claude or Lovable.</p></div>
+    <div class="card"><div class="k">02</div><h4>Supabase</h4><p>Create a Supabase account. Free tier is enough for any departmental project.</p></div>
+    <div class="card"><div class="k">03</div><h4>Connect a DB</h4><p>Wire a database to one of your generated sites. Even just a contact form that saves submissions.</p></div>
+    <div class="card"><div class="k">04</div><h4>Lovable.dev</h4><p>Create a Lovable.dev account.</p></div>
+    <div class="card"><div class="k">05</div><h4>Bolt.new</h4><p>Create a Bolt.new account.</p></div>
+    <div class="card"><div class="k">06</div><h4>Figma + Claude</h4><p>Test the Figma + Claude connection. Even once, to know what's possible.</p></div>
+  </div>
+  <p class="note">The accounts you don't create today, you won't create on Monday. Block five minutes. Do all six.</p>
+  <div class="kicker"><div>23 / 32</div></div>
+</section>
+
+<!-- ========= SLIDE 21. BEYOND WEBSITES ========= -->
+<section class="slide" data-title="Beyond websites">
+  <div class="eyebrow"><span>Building Real Web Applications</span></div>
+  <h2 class="h">A landing page is a <em>starting point.</em></h2>
+  <p class="lede">The real shift happens when you build something that solves a problem. A small web application your department, lab or research group actually uses every week.</p>
+  <div class="hl short"></div>
+  <h3 class="sh">Start with the problem</h3>
+  <p class="lede" style="margin-top:.5vh">A handpicked set of five problem-statement ideas lives in the shared resources folder. Pick one and start.</p>
+  <div class="samples">
+    <div class="samples-label">Shared doc</div>
+    <div class="samples-row">
+      <a class="sample" href="https://docs.google.com/document/d/1mco48ZUqguzfhS6ecNaELoZ80e_QjLXj/edit?usp=sharing&amp;ouid=102692107394815575063&amp;rtpof=true&amp;sd=true" target="_blank" rel="noopener">
+        <span class="sample-k">Five problem-statement ideas</span>
+        <span class="sample-url">Top 5 High-Impact Web Applications for Engineering Colleges in India ↗</span>
+      </a>
+    </div>
+  </div>
+  <p class="note">Context-saving tip. Close one chat between layers, start a new one with just the relevant summary. Costs drop, accuracy goes up.</p>
+  <div class="kicker"><div>24 / 32</div></div>
+</section>
+
+<!-- ========= SLIDE 22. 9 LAYER BUILD PATH ========= -->
+<section class="slide" data-title="The 9-layer build path">
+  <div class="eyebrow"><span>The 9-Layer Build Path</span></div>
+  <h2 class="h">Build it <em>layer by layer.</em></h2>
+  <p class="lede">A web application is more than a webpage. Skipping ahead always costs more time than it saves.</p>
+  <div class="layers">
+    <div class="lyr"><div class="n">i.</div><div class="t">Think &amp; Sketch</div></div>
+    <div class="lyr"><div class="n">ii.</div><div class="t">Core Happy Path</div></div>
+    <div class="lyr"><div class="n">iii.</div><div class="t">Data Layer</div></div>
+    <div class="lyr"><div class="n">iv.</div><div class="t">Login &amp; Roles</div></div>
+    <div class="lyr"><div class="n">v.</div><div class="t">Full Workflow</div></div>
+    <div class="lyr"><div class="n">vi.</div><div class="t">Notifications</div></div>
+    <div class="lyr"><div class="n">vii.</div><div class="t">Dashboards</div></div>
+    <div class="lyr"><div class="n">viii.</div><div class="t">AI Features</div></div>
+    <div class="lyr"><div class="n">ix.</div><div class="t">Polish &amp; Deploy</div></div>
+  </div>
+  <div class="samples">
+    <div class="samples-label">Reference</div>
+    <div class="samples-row">
+      <a class="sample" href="https://docs.google.com/document/d/1Z7wHdAvsquEbrMP2at7RJ4lfKo6VMhw5/edit?usp=sharing&amp;ouid=102692107394815575063&amp;rtpof=true&amp;sd=true" target="_blank" rel="noopener">
+        <span class="sample-k">Full 9-layer breakdown</span>
+        <span class="sample-url">Web App Development Guide ↗</span>
+      </a>
+    </div>
+  </div>
+  <div class="kicker"><div>25 / 32</div></div>
+</section>
+
+<!-- ========= SLIDE 23. TEACHING THE LOOP ========= -->
+<section class="slide" data-title="Teaching the full loop">
+  <div class="eyebrow"><span>Teaching Students · Idea to Launch</span></div>
+  <h2 class="h">The thing that <em>matters</em> isn't the tools. It's the loop.</h2>
+  <p class="lede">Most engineering graduates never learn this habit. The ones who do, build companies.</p>
+  <ol class="habits">
+    <li><div><div class="t">Spot problems</div><div class="d">Look at any business, any noticeboard, with the eye of someone asking "what's broken. Could I fix it?"</div></div></li>
+    <li><div><div class="t">Capture instantly</div><div class="d">Notes app, voice memo, anywhere. The thought you don't capture in 60 seconds is gone.</div></div></li>
+    <li><div><div class="t">Implement as MVP</div><div class="d">A working, ugly version that proves the idea. Fast.</div></div></li>
+    <li><div><div class="t">Find similar people</div><div class="d">Share it. Measure interest. Actually measure. Don't guess.</div></div></li>
+    <li><div><div class="t">7 of 10 → go</div><div class="d">Below 5, drop it. Between 5 and 7, dig deeper before deciding.</div></div></li>
+    <li><div><div class="t">Find partners</div><div class="d">Solo builds are slower and lonelier. Partnerships compound.</div></div></li>
+    <li><div><div class="t">Free, limited usage</div><div class="d">Get real users. Watch what they do vs what they say.</div></div></li>
+    <li><div><div class="t">Then aggressive build</div><div class="d">When users will pay, push marketing, dev, polish, UX, launch.</div></div></li>
+  </ol>
+  <div class="kicker"><div>26 / 32</div></div>
+</section>
+
+<!-- ========= SLIDE 24. RULE OF SUCCESS ========= -->
+<section class="slide dark" data-title="Rule of success">
+  <div class="eyebrow"><span>My Rule of Success</span></div>
+  <h2 class="h">Don't go for <em>perfection.</em></h2>
+  <p class="pull" style="color:var(--cream);max-width:42ch">Chasing perfection breeds competitors who shipped while you polished.</p>
+  <span class="cursive">&ldquo;Imperfect is perfectly perfect.&rdquo;</span>
+  <p class="flow">
+    <span class="step">Thought</span>
+    <span class="sep">→</span>
+    <span class="step">Implement</span>
+    <span class="sep">→</span>
+    <span class="step">Validate</span>
+    <span class="sep">→</span>
+    <span class="step">Iterate</span>
+    <span class="sep">→</span>
+    <span class="step">Again implement</span>
+    <span class="sep">→</span>
+    <span class="step">Validate</span>
+    <span class="sep">→</span>
+    <span class="step ongoing">On-going</span>
+  </p>
+  <p class="note" style="color:var(--coral-soft);margin-top:3vh">Example: <a class="inline-link" href="https://www.linkedin.com/posts/nik-ng_trust-realestate-shivalikgroup-activity-7227146512894484480-FRf7?utm_source=share&amp;utm_medium=member_desktop&amp;rcm=ACoAABTrjE4BPK3U5__7t1SIPbbKBcvFT7GWDaw" target="_blank" rel="noopener">My Post</a>, Customer: Shivalik Builders (Largest Real-Estate Group)</p>
+  <div class="kicker"><div>27 / 32</div></div>
+</section>
+
+<!-- ========= SLIDE 25. COMPETITION ========= -->
+<section class="slide" data-title="Run a vibe coding competition">
+  <div class="eyebrow"><span>Idea · Run a Vibe Coding Competition</span></div>
+  <h2 class="h">Make it a <em>permanent</em> capability.</h2>
+  <ul class="points dots">
+    <li>Run an open competition. Curate a list of ideas, students pick from it.</li>
+    <li>Build in groups, not solo. Students teach each other prompting tricks in real time.</li>
+    <li>Publish qualifying criteria up front: code quality, UX, business viability, innovation.</li>
+    <li>Keep IP under the university. Fair exchange for platform, mentorship and visibility.</li>
+    <li>Real rewards: cash, gifts, sponsorships. Most of all, <i>recognition.</i> That's what students remember years later.</li>
+  </ul>
+  <p class="pull" style="max-width:74ch;font-size:clamp(18px,2.1vw,30px);line-height:1.3">Who knows,<br>The next ChatGPT or Anthropic might be built by a <em>CHARUSAT student.</em></p>
+  <div class="kicker"><div>28 / 32</div></div>
+</section>
+
+<!-- ========= SLIDE 26. PARTNERSHIPS ========= -->
+<section class="slide" data-title="Strike partnerships with AI labs">
+  <div class="eyebrow"><span>Strike Partnerships with AI Labs</span></div>
+  <h2 class="h">The move <em>most institutions</em> aren't making.</h2>
+  <p class="lede">Cost of making it: one email.</p>
+  <div class="grid-2">
+    <div>
+      <h3 class="sh">The play</h3>
+      <ul class="points dots">
+        <li>Identify the AI tools your team and students will need most.</li>
+        <li>Email those companies directly. Institutional address.</li>
+        <li>Ask for student pricing, education licences or campus partnerships.</li>
+        <li>Frame it as a fair exchange: visibility, case studies, beta feedback → licences.</li>
+      </ul>
+    </div>
+    <div>
+      <h3 class="sh">What to <em>ask for</em></h3>
+      <ul class="points violet dots">
+        <li>Free licences for <b>X</b> students and <b>Y</b> faculty for the academic year.</li>
+        <li>Sponsorship for a session, hackathon or annual event. In exchange for the licences.</li>
+        <li>A company representative speaking once per semester. Exposure for students, recruiting funnel for the company.</li>
+      </ul>
+    </div>
+  </div>
+  <p class="note">Every AI company is in a market-share race. Worst case: they say no.</p>
+  <div class="kicker"><div>29 / 32</div></div>
+</section>
+
+<!-- ========= SLIDE 27. MONDAY MORNING TEST ========= -->
+<section class="slide" data-title="Monday morning test">
+  <div class="eyebrow"><span>The Monday Morning Test</span></div>
+  <h2 class="h">Did this session <em>work?</em></h2>
+  <p class="lede">The real measure is not whether you found it interesting. It's whether, on Monday morning, you do something <i>differently.</i></p>
+  <ul class="points dots">
+    <li>You will have a live URL. A webpage or small app you built today. To share with a colleague.</li>
+    <li>You will have signed up for Lovable, Bolt and Supabase. Three accounts, ten minutes, free.</li>
+    <li>You will know which of the three Claude entry points (terminal · app · web) actually fits how you work.</li>
+    <li>You will be able to name the 5-layer process from memory: Content · Context · Design · Dev &amp; DB · QA &amp; Modify.</li>
+  </ul>
+  <p class="pull" style="max-width:60ch">Teach the loop to <em>one</em> student in the next two weeks.<br>And it keeps working long after we leave the room.</p>
+  <div class="kicker"><div>30 / 32</div></div>
+</section>
+
+<!-- ========= SLIDE 28. END ========= -->
+<!-- ========= SLIDE 30. JOIN UNICORN CLUB ========= -->
+<section class="slide" data-title="Join the One-Person Unicorn Club">
+  <div class="eyebrow"><span>Scan the QR code to join</span></div>
+  <div class="join-grid">
+    <div class="join-text">
+      <h2 class="h" style="font-size:clamp(34px,4.4vw,64px);line-height:1.05">One-Person<br><em>Unicorn Club.</em></h2>
+      <p class="lede" style="margin-top:1.6vh">Build AI-powered businesses without scaling headcount.</p>
+      <ul class="points dots" style="margin-top:2.4vh">
+        <li>Ask questions anytime</li>
+        <li>Get support from our team</li>
+        <li>Learn AI, automation &amp; vibe coding</li>
+        <li>Monthly online sessions &amp; workshops</li>
+      </ul>
+      <div class="samples" style="margin-top:3vh">
+        <div class="samples-label">Join here</div>
+        <div class="samples-row">
+          <a class="sample" href="https://www.skool.com/one-person-unicorn-club-4299/about" target="_blank" rel="noopener">
+            <span class="sample-k">Community</span>
+            <span class="sample-url">One-Person Unicorn Club ↗</span>
+          </a>
+        </div>
+      </div>
+    </div>
+    <div class="join-qr">
+      <img src="qr_unicorn.png" alt="QR code: scan to join the One-Person Unicorn Club" />
+    </div>
+  </div>
+  <div class="kicker"><div>31 / 32</div></div>
+</section>
+
+<!-- ========= SLIDE 31. THANK YOU ========= -->
+<section class="slide dark" data-title="End of Session 6">
+  <h1 class="title" style="text-align:center;font-size:clamp(72px,11vw,180px)">Thank <em>you!</em></h1>
+  <div class="kicker"><div>32 / 32</div></div>
+</section>
+
+</div>
+
+<!-- progress + chrome -->
+<div class="progress" id="progress"></div>
+<div class="help">← → · space · home · end</div>
+
+<script>
+(function(){
+  const slides = Array.from(document.querySelectorAll('.slide'));
+  let idx = 0;
+  const progress = document.getElementById('progress');
+  function show(n){
+    idx = Math.max(0, Math.min(slides.length-1, n));
+    slides.forEach((s,i)=>s.classList.toggle('active', i===idx));
+    progress.style.width = ((idx+1)/slides.length*100).toFixed(2)+'%';
+    document.title = slides[idx].dataset.title + ' · Session 6';
+  }
+  document.addEventListener('keydown', e=>{
+    if(['ArrowRight','PageDown',' '].includes(e.key)){ show(idx+1); e.preventDefault(); }
+    else if(['ArrowLeft','PageUp'].includes(e.key)){ show(idx-1); e.preventDefault(); }
+    else if(e.key==='Home'){ show(0); }
+    else if(e.key==='End'){ show(slides.length-1); }
+  });
+  // click right half = next, left half = prev
+  document.addEventListener('click', e=>{
+    if(e.target.closest('a,button,input,select,textarea')) return;
+    const x = e.clientX/window.innerWidth;
+    if(x>0.5) show(idx+1); else show(idx-1);
+  });
+  // touch swipe
+  let tx=null;
+  document.addEventListener('touchstart',e=>tx=e.touches[0].clientX,{passive:true});
+  document.addEventListener('touchend',e=>{
+    if(tx==null) return;
+    const dx=e.changedTouches[0].clientX-tx;
+    if(Math.abs(dx)>40){ show(idx + (dx<0?1:-1)); }
+    tx=null;
+  });
+  show(0);
+})();
+</script>
+</body>
+</html>
